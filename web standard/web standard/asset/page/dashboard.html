@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Elixr University | Dashboard</title>
+    
+    <!--Bootstrap CSS-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../css/style.css"/>
+</head>
+<body>
+    <!-- Nav -->
+    <nav>
+      <button class="nav-toggle" aria-label="toggle menu">
+        <i class="fas fa-bars"></i>
+      </button>
+    
+      <ul class="mb-0 nav-links">
+        <li class="nav-item"><a class="nav-link" href="../../student.html">HOME</a></li>
+        <li class="nav-item"><a class="nav-link active" href="dashboard.html">DASHBOARD</a></li>
+        <li class="nav-item"><a class="nav-link" href="cart.html">ENROLLED TO</a></li>
+        <li class="nav-item dropdown" id="welcome-dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            <span id="welcome-name">Welcome!</span>
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" id="logoutBtn">Logout</a></li>
+          </ul>
+        </li>
+      </ul>
+
+      <div class="logo">
+        <span class="uni-name">Elixr University</span>
+        <img src="../asset/img/elixr_logo.jpg" alt="Logo" />
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mt-5">
+        <h2 id="dashboard-title" class="mb-4">Dashboard</h2>
+        <p id="welcome-msg">Hello, <span id="user-name">Student</span>! Welcome to your dashboard.</p>
+
+        <div class="enrolled-courses mt-4">
+            <h4>Your Enrolled Courses:</h4>
+            <div class="row" id="courses-list">
+                <!-- Courses will be dynamically added here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-5">
+        <p>
+            Contact:
+            <a href="mailto:debugcafe2025@gmail.com">elixrUniversity2026@gmail.com</a> |
+            <a href="tel:+639690229118">09690229118</a> |
+            <a href="https://facebook.com" target="_blank">Facebook</a> &
+            <a href="https://instagram.com" target="_blank">Instagram</a>
+        </p>
+        <p>© 2026 Elixr University. All rights reserved.</p>
+    </footer>
+
+    <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+// ---------- Initialize Database ----------
+let db = localStorage.getItem('db') ? JSON.parse(localStorage.getItem('db')) : { users: [] };
+let loggedInUser = localStorage.getItem('loggedInUser') || null;
+
+// ---------- DOM Elements ----------
+const welcomeDropdown = document.getElementById('welcome-dropdown');
+const welcomeName = document.getElementById('welcome-name');
+const logoutBtn = document.getElementById('logoutBtn');
+const protectedItems = document.querySelectorAll('.protected');
+const userNameSpan = document.getElementById('user-name');
+const dashboardTitle = document.getElementById('dashboard-title');
+
+// ---------- Update Navbar ----------
+function updateMenuDisplay() {
+    if (loggedInUser) {
+        welcomeDropdown.style.display = 'block';
+        welcomeName.textContent = `Welcome, ${loggedInUser}!`;
+        protectedItems.forEach(item => item.style.display = 'block');
+        if(userNameSpan) userNameSpan.textContent = loggedInUser;
+    } else {
+        // redirect to login page if no user
+        window.location.href = "../index.html";
+    }
+}
+
+updateMenuDisplay();
+
+// ---------- Logout ----------
+logoutBtn?.addEventListener('click', () => {
+    localStorage.removeItem('loggedInUser');
+    loggedInUser = null;
+    updateMenuDisplay();
+    window.location.href = "../index.html"; // redirect to home
+});
+
+// ---------- Hamburger Toggle ----------
+const toggleButton = document.querySelector('.nav-toggle');
+const navLinks = document.querySelector('.nav-links');
+toggleButton?.addEventListener('click', () => {
+    navLinks.classList.toggle('show');
+});
+
+// ---------- Dummy Enrolled Courses ----------
+const coursesList = document.getElementById("courses-list");
+if(coursesList) {
+    const dummyCourses = [
+        { title: "Introduction to Programming", code: "CS101" },
+        { title: "Web Development Basics", code: "WD201" },
+        { title: "Database Management", code: "DB301" }
+    ];
+
+    dummyCourses.forEach(course => {
+        const courseCard = document.createElement("div");
+        courseCard.classList.add("col-md-4", "mb-3");
+        courseCard.innerHTML = `
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">${course.title}</h5>
+                    <p class="card-text">Course Code: ${course.code}</p>
+                    <a href="#" class="btn btn-primary">Go to Course</a>
+                </div>
+            </div>
+        `;
+        coursesList.appendChild(courseCard);
+    });
+}
+    </script>
+</body>
+</html>

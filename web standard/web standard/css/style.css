@@ -1,0 +1,275 @@
+/* Google Fonts (IMPORTANT: also add in HTML <head>) */
+/* <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet"> */
+
+/* Base */
+body, html {
+  height: 100%;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #0b1d3a, #142850);
+  margin: 0;
+  padding-top: 70px;
+  color: #f1f1f1;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Headings */
+h1, h2, h3, h4, .uni-name, .modal-title {
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 1px;
+}
+
+/* Navbar */
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 70px;
+  background: #0b1d3a;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  z-index: 1000;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+nav ul li a {
+  font-family: 'Poppins', sans-serif;
+  text-decoration: none;
+  font-size: 18px;
+  color: #f1f1f1;
+  padding: 0 18px;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+nav ul li a:hover,
+nav ul li a.active {
+  color: #d4af37;
+}
+
+/* Login/Register */
+.nav-item.log .nav-link {
+  border-radius: 8px;
+  margin: 10px;
+}
+
+.nav-item.log .nav-link:hover {
+  background-color: #d4af37;
+  color: #0b1d3a;
+  transform: translateY(-2px);
+}
+
+/* Dropdown */
+.dropdown-menu {
+  background-color: #142850;
+  border-radius: 10px;
+}
+
+.dropdown-item {
+  color: #f1f1f1;
+}
+
+.dropdown-item:hover {
+  background-color: #d4af37;
+  color: #0b1d3a;
+}
+
+/* Logo */
+.logo {
+  display: flex;
+  align-items: center;
+  color: #d4af37;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.logo img {
+  width: 40px;
+  height: 40px;
+  margin-left: 10px;
+  border-radius: 6px;
+  border: 2px solid #d4af37;
+}
+
+/* Main */
+main p {
+  font-size: 28px;
+  font-weight: 600;
+  text-align: center;
+}
+
+main h4 {
+  text-align: center;
+  color: #ccc;
+}
+
+/* Images */
+img {
+  border-radius: 12px;
+  max-width: 100%;
+}
+
+/* Cards */
+#uni-prev {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.coffee-link {
+  color: #fff;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  padding: 15px;
+  border-radius: 18px;
+  transition: 0.3s;
+  text-align: center;
+}
+
+.coffee-link:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+}
+
+.coffee-link img {
+  border-radius: 12px;
+  border: 3px solid #d4af37;
+}
+
+.coffee-link p {
+  margin-top: 10px;
+  font-size: 15px;
+}
+
+/* Footer */
+footer {
+  background-color: #0b1d3a;
+  color: #f1f1f1;
+  text-align: center;
+  padding: 15px;
+  margin-top: 30px;
+}
+
+footer a {
+  color: #d4af37;
+}
+
+footer a:hover {
+  color: #f5d76e;
+}
+
+/* Modal */
+.modal-content {
+  background: rgba(11, 29, 58, 0.95);
+  border: 2px solid #d4af37;
+  border-radius: 18px;
+}
+
+.modal-title {
+  color: #d4af37;
+}
+
+/* Inputs */
+.modal-body .form-control {
+  background: rgba(255,255,255,0.05);
+  border: 2px solid #d4af37;
+  color: #fff;
+  border-radius: 10px;
+}
+
+.modal-body .form-control:focus {
+  border-color: #f5d76e;
+  box-shadow: 0 0 10px rgba(212,175,55,0.5);
+}
+
+/* Buttons */
+.btn-success {
+  background-color: #d4af37;
+  color: #0b1d3a;
+  border: none;
+  font-weight: 600;
+}
+
+.btn-success:hover {
+  background-color: #f5d76e;
+}
+
+.btn-secondary {
+  background-color: #444;
+}
+
+/* Errors */
+.error-message {
+  color: #ff6b6b;
+  font-size: 13px;
+}
+
+/* Password toggle */
+.password-container {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #d4af37;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.password-toggle:hover {
+  color: #f5d76e;
+}
+
+/* Hamburger */
+.nav-toggle {
+  display: none;
+  font-size: 26px;
+  background: none;
+  border: none;
+  color: #d4af37;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  nav {
+    flex-direction: column;
+    height: auto;
+  }
+
+  nav ul {
+    flex-direction: column;
+    display: none;
+    width: 100%;
+    background: #0b1d3a;
+  }
+
+  nav ul.show {
+    display: flex;
+  }
+
+  nav ul li {
+    text-align: center;
+    padding: 10px 0;
+  }
+
+  .nav-toggle {
+    display: block;
+    position: absolute;
+    right: 20px;
+    top: 15px;
+  }
+}

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Elixr University | People</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../css/style.css"/>
+    <link rel="stylesheet" href="../../css/dashboard.css"/>
+</head>
+<body>
+    <!-- Nav -->
+    <nav>
+      <button class="nav-toggle" aria-label="toggle menu">
+        <i class="fas fa-bars"></i>
+      </button>
+    
+      <ul class="mb-0 nav-links">
+        <li class="nav-item"><a class="nav-link" href="../../student.html">HOME</a></li>
+        <li class="nav-item"><a class="nav-link" href="dashboard.html">DASHBOARD</a></li>
+        <li class="nav-item"><a class="nav-link" href="calendar.html">CALENDAR</a></li>
+        <li class="nav-item"><a class="nav-link" href="announcements.html">ANNOUNCEMENTS</a></li>
+        <li class="nav-item"><a class="nav-link" href="classwork.html">CLASSWORK</a></li>
+        
+        <li class="nav-item dropdown" id="welcome-dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            <span id="welcome-name">Welcome!</span>
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+          </ul>
+        </li>
+      </ul>
+      <div class="logo">
+        <span class="uni-name">Elixr University</span>
+        <img src="../img/elixr_logo.jpg" alt="Logo" />
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <a href="class-detail.html" class="btn btn-outline-warning btn-sm mb-2" id="backBtn">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Class
+                </a>
+                <h2><i class="fas fa-users me-2 text-warning"></i>People</h2>
+                <p class="text-muted mb-0" id="className">Loading...</p>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchPeople" placeholder="Search...">
+            </div>
+        </div>
+        
+        <!-- Instructor Section -->
+        <div class="card bg-dark border-warning mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fas fa-chalkboard-teacher me-2"></i>Instructor</h5>
+            </div>
+            <div class="card-body people-list" id="instructor-container">
+                <div class="text-center py-3">
+                    <div class="spinner-border text-warning spinner-border-sm" role="status"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Classmates Section -->
+        <div class="card bg-dark border-warning">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-warning"><i class="fas fa-user-graduate me-2"></i>Classmates</h5>
+                <span class="badge bg-warning text-dark" id="classmateCount">0</span>
+            </div>
+            <div class="card-body people-list" id="classmates-container">
+                <div class="text-center py-3">
+                    <div class="spinner-border text-warning" role="status"></div>
+                    <p class="mt-2 mb-0">Loading classmates...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-5">
+        <p>&copy; 2026 Elixr University. All rights reserved.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script>
+        let allClassmates = [];
+        
+        // Get class ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const classId = urlParams.get('id');
+        
+        // Check auth
+        if (!isLoggedIn()) {
+            window.location.href = '../../student.html';
+        }
+        
+        if (!classId) {
+            window.location.href = 'dashboard.html';
+        }
+        
+        // Update back button
+        document.getElementById('backBtn').href = `class-detail.html?id=${classId}`;
+        
+        // Update welcome message
+        const user = getStoredUser();
+        if (user) {
+            document.getElementById('welcome-name').textContent = `Welcome, ${user.first_name}!`;
+        }
+        
+        // Load class details
+        async function loadClassDetails() {
+            try {
+                const response = await getClassDetail(classId);
+                if (response.success) {
+                    const cls = response.data.class;
+                    document.getElementById('className').textContent = 
+                        `${cls.subject_name} (${cls.course_code}) - ${cls.section}`;
+                }
+            } catch (error) {
+                console.error('Error loading class:', error);
+            }
+        }
+        
+        // Load people
+        async function loadPeople() {
+            try {
+                const response = await getClassPeople(classId);
+                if (response.success) {
+                    renderInstructor(response.data.instructor);
+                    allClassmates = response.data.classmates;
+                    renderClassmates(allClassmates);
+                    document.getElementById('classmateCount').textContent = response.data.total_students;
+                }
+            } catch (error) {
+                console.error('Error loading people:', error);
+                document.getElementById('instructor-container').innerHTML = 
+                    '<p class="text-danger">Failed to load</p>';
+                document.getElementById('classmates-container').innerHTML = 
+                    '<p class="text-danger">Failed to load classmates</p>';
+            }
+        }
+        
+        // Render instructor
+        function renderInstructor(instructor) {
+            const container = document.getElementById('instructor-container');
+            container.innerHTML = `
+                <div class="person-item">
+                    <div class="person-avatar">
+                        ${instructor.first_name[0]}${instructor.last_name[0]}
+                    </div>
+                    <div class="person-info">
+                        <h6>${escapeHtml(instructor.first_name)} ${escapeHtml(instructor.last_name)}</h6>
+                        <small><a href="mailto:${escapeHtml(instructor.email)}" class="text-warning">${escapeHtml(instructor.email)}</a></small>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Render classmates
+        function renderClassmates(classmates) {
+            const container = document.getElementById('classmates-container');
+            
+            if (!classmates || classmates.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-users text-warning" style="font-size: 32px; opacity: 0.5;"></i>
+                        <p class="mt-2 mb-0 text-muted">No classmates yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = classmates.map(person => `
+                <div class="person-item">
+                    <div class="person-avatar">
+                        ${person.first_name[0]}${person.last_name[0]}
+                    </div>
+                    <div class="person-info">
+                        <h6>${escapeHtml(person.first_name)} ${escapeHtml(person.last_name)}</h6>
+                        <small class="text-muted">${escapeHtml(person.email)}</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Search functionality
+        document.getElementById('searchPeople').addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            const filtered = allClassmates.filter(p => 
+                p.first_name.toLowerCase().includes(query) || 
+                p.last_name.toLowerCase().includes(query) ||
+                p.email.toLowerCase().includes(query)
+            );
+            renderClassmates(filtered);
+        });
+        
+        // Helper functions
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+        
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            logoutUser();
+        });
+        
+        // Nav toggle
+        document.querySelector('.nav-toggle').addEventListener('click', () => {
+            document.querySelector('.nav-links').classList.toggle('show');
+        });
+        
+        // Initialize
+        loadClassDetails();
+        loadPeople();
+    </script>
+</body>
+</html>

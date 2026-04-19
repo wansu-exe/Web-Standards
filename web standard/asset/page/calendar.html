@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Elixr University | Course Calendar</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../css/style.css"/>
+    <link rel="stylesheet" href="../../css/dashboard.css"/>
+</head>
+<body>
+    <!-- Nav -->
+    <nav>
+      <button class="nav-toggle" aria-label="toggle menu">
+        <i class="fas fa-bars"></i>
+      </button>
+    
+      <ul class="mb-0 nav-links">
+        <li class="nav-item"><a class="nav-link" href="../../student.html">HOME</a></li>
+        <li class="nav-item"><a class="nav-link" href="dashboard.html">DASHBOARD</a></li>
+        <li class="nav-item"><a class="nav-link active" href="calendar.html">CALENDAR</a></li>
+        <li class="nav-item"><a class="nav-link" href="announcements.html">ANNOUNCEMENTS</a></li>
+        <li class="nav-item"><a class="nav-link" href="classwork.html">CLASSWORK</a></li>
+        
+        <li class="nav-item dropdown" id="welcome-dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            <span id="welcome-name">Welcome!</span>
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+          </ul>
+        </li>
+      </ul>
+      <div class="logo">
+        <span class="uni-name">Elixr University</span>
+        <img src="../img/elixr_logo.jpg" alt="Logo" />
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mt-4">
+        <div class="row">
+            <!-- Calendar -->
+            <div class="col-lg-8">
+                <div class="card bg-dark border-warning mb-4">
+                    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                        <button class="btn btn-outline-warning btn-sm" id="prevMonth">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <h4 class="mb-0 text-warning" id="currentMonth">Loading...</h4>
+                        <button class="btn btn-outline-warning btn-sm" id="nextMonth">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <!-- Calendar Header -->
+                        <div class="calendar-grid mb-2">
+                            <div class="text-center text-warning fw-bold py-2">Sun</div>
+                            <div class="text-center text-warning fw-bold py-2">Mon</div>
+                            <div class="text-center text-warning fw-bold py-2">Tue</div>
+                            <div class="text-center text-warning fw-bold py-2">Wed</div>
+                            <div class="text-center text-warning fw-bold py-2">Thu</div>
+                            <div class="text-center text-warning fw-bold py-2">Fri</div>
+                            <div class="text-center text-warning fw-bold py-2">Sat</div>
+                        </div>
+                        <!-- Calendar Days -->
+                        <div class="calendar-grid" id="calendarDays">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-warning" role="status"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Upcoming Events Sidebar -->
+            <div class="col-lg-4">
+                <div class="card bg-dark border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Selected Day</h5>
+                    </div>
+                    <div class="card-body" id="selectedDayEvents">
+                        <p class="text-center text-muted">Click on a date to see events</p>
+                    </div>
+                </div>
+                
+                <div class="card bg-dark border-warning mt-4">
+                    <div class="card-header bg-transparent">
+                        <h5 class="mb-0 text-warning"><i class="fas fa-tasks me-2"></i>Legend</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-primary me-2">Lesson</span>
+                            <small class="text-muted">Course material</small>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-success me-2">Lab</span>
+                            <small class="text-muted">Practical work</small>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-warning text-dark me-2">Quiz</span>
+                            <small class="text-muted">Assessment</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-info me-2">Assignment</span>
+                            <small class="text-muted">Homework</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-5">
+        <p>&copy; 2026 Elixr University. All rights reserved.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script>
+        // Calendar state
+        let currentDate = new Date();
+        let calendarEvents = {};
+        
+        // Check auth
+        if (!isLoggedIn() || isFaculty()) {
+            window.location.href = '../../student.html';
+        }
+        
+        // Update welcome message
+        const user = getStoredUser();
+        if (user) {
+            document.getElementById('welcome-name').textContent = `Welcome, ${user.first_name}!`;
+        }
+        
+        // Render calendar
+        async function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
+            
+            // Update header
+            document.getElementById('currentMonth').textContent = 
+                currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            
+            // Load events
+            try {
+                const response = await getCalendarEvents(monthStr);
+                if (response.success) {
+                    calendarEvents = response.data.calendar || {};
+                }
+            } catch (error) {
+                console.error('Error loading calendar:', error);
+            }
+            
+            // Generate calendar days
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const today = new Date();
+            
+            let html = '';
+            
+            // Empty cells before first day
+            for (let i = 0; i < firstDay; i++) {
+                html += '<div class="calendar-day" style="opacity: 0.3;"></div>';
+            }
+            
+            // Days of month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+                const hasEvents = calendarEvents[dateStr] && calendarEvents[dateStr].length > 0;
+                
+                html += `
+                    <div class="calendar-day ${isToday ? 'today' : ''} ${hasEvents ? 'has-event' : ''}" 
+                         data-date="${dateStr}" onclick="showDayEvents('${dateStr}')">
+                        <div class="day-number">${day}</div>
+                        ${hasEvents ? '<div class="event-dot"></div>' : ''}
+                    </div>
+                `;
+            }
+            
+            document.getElementById('calendarDays').innerHTML = html;
+        }
+        
+        // Show events for selected day
+        function showDayEvents(dateStr) {
+            const events = calendarEvents[dateStr] || [];
+            const container = document.getElementById('selectedDayEvents');
+            
+            const date = new Date(dateStr);
+            const dateDisplay = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+            
+            if (events.length === 0) {
+                container.innerHTML = `
+                    <p class="text-warning mb-2">${dateDisplay}</p>
+                    <p class="text-muted">No events on this day</p>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <p class="text-warning mb-3">${dateDisplay}</p>
+                ${events.map(event => `
+                    <div class="classwork-item mb-2">
+                        <div class="icon ${event.type}">
+                            <i class="fas fa-${event.type === 'lesson' ? 'book' : event.type === 'lab' ? 'flask' : event.type === 'quiz' ? 'question' : 'file-alt'}"></i>
+                        </div>
+                        <div class="info">
+                            <h6 class="mb-0">${event.title}</h6>
+                            <small>${event.subject_name}</small>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+        
+        // Navigation
+        document.getElementById('prevMonth').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+        
+        document.getElementById('nextMonth').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+        
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            logoutUser();
+        });
+        
+        // Nav toggle
+        document.querySelector('.nav-toggle').addEventListener('click', () => {
+            document.querySelector('.nav-links').classList.toggle('show');
+        });
+        
+        // Initialize
+        renderCalendar();
+    </script>
+</body>
+</html>

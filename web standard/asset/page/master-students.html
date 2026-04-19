@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Elixr University | Master Student List</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../css/style.css"/>
+    <link rel="stylesheet" href="../../css/dashboard.css"/>
+</head>
+<body>
+    <!-- Nav -->
+    <nav>
+      <button class="nav-toggle" aria-label="toggle menu">
+        <i class="fas fa-bars"></i>
+      </button>
+    
+      <ul class="mb-0 nav-links">
+        <li class="nav-item"><a class="nav-link" href="../../student.html">HOME</a></li>
+        <li class="nav-item"><a class="nav-link" href="dashboard.html">DASHBOARD</a></li>
+        <li class="nav-item"><a class="nav-link active" href="master-students.html">MASTER LIST</a></li>
+        
+        <li class="nav-item dropdown" id="welcome-dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            <span id="welcome-name">Welcome!</span>
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+          </ul>
+        </li>
+      </ul>
+      <div class="logo">
+        <span class="uni-name">Elixr University</span>
+        <img src="../img/elixr_logo.jpg" alt="Logo" />
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-users me-2 text-warning"></i>Master Student List</h2>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchStudents" placeholder="Search students...">
+            </div>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="card bg-dark border-warning text-center">
+                    <div class="card-body">
+                        <h3 class="text-warning" id="totalStudents">0</h3>
+                        <p class="mb-0">Total Students</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card bg-dark border-warning text-center">
+                    <div class="card-body">
+                        <h3 class="text-warning" id="totalClasses">0</h3>
+                        <p class="mb-0">Your Classes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card bg-dark border-warning text-center">
+                    <div class="card-body">
+                        <h3 class="text-warning" id="avgPerClass">0</h3>
+                        <p class="mb-0">Avg per Class</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filter by Class -->
+        <div class="mb-4">
+            <select class="form-select bg-dark text-light border-warning" id="filterClass" style="max-width: 300px;">
+                <option value="">All Classes</option>
+            </select>
+        </div>
+        
+        <!-- Students Table -->
+        <div class="table-responsive master-table">
+            <table class="table table-dark table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-user me-2"></i>Name</th>
+                        <th><i class="fas fa-at me-2"></i>Username</th>
+                        <th><i class="fas fa-envelope me-2"></i>Email</th>
+                        <th><i class="fas fa-book me-2"></i>Enrolled Subjects</th>
+                        <th><i class="fas fa-calendar me-2"></i>First Enrolled</th>
+                    </tr>
+                </thead>
+                <tbody id="students-tbody">
+                    <tr>
+                        <td colspan="5" class="text-center py-4">
+                            <div class="spinner-border text-warning" role="status"></div>
+                            <p class="mt-2 mb-0">Loading students...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-5">
+        <p>&copy; 2026 Elixr University. All rights reserved.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script>
+        let allStudents = [];
+        let allClasses = [];
+        
+        // Check auth - faculty only
+        if (!isLoggedIn() || !isFaculty()) {
+            window.location.href = '../../student.html';
+        }
+        
+        // Update welcome message
+        const user = getStoredUser();
+        if (user) {
+            document.getElementById('welcome-name').textContent = `Welcome, ${user.first_name}!`;
+        }
+        
+        // Load classes for filter
+        async function loadClasses() {
+            try {
+                const response = await getClasses();
+                if (response.success) {
+                    allClasses = response.data.classes;
+                    document.getElementById('totalClasses').textContent = allClasses.length;
+                    
+                    const select = document.getElementById('filterClass');
+                    allClasses.forEach(cls => {
+                        const option = document.createElement('option');
+                        option.value = cls.id;
+                        option.textContent = `${cls.subject_name} (${cls.course_code})`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading classes:', error);
+            }
+        }
+        
+        // Load students
+        async function loadStudents(classId = null) {
+            try {
+                const response = await getClassStudents(classId);
+                if (response.success) {
+                    allStudents = response.data.students;
+                    updateStats();
+                    renderStudents(allStudents);
+                }
+            } catch (error) {
+                console.error('Error loading students:', error);
+                document.getElementById('students-tbody').innerHTML = `
+                    <tr><td colspan="5" class="text-center text-danger">Failed to load students</td></tr>
+                `;
+            }
+        }
+        
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalStudents').textContent = allStudents.length;
+            
+            if (allClasses.length > 0) {
+                const avg = Math.round(allStudents.length / allClasses.length);
+                document.getElementById('avgPerClass').textContent = avg;
+            }
+        }
+        
+        // Render students table
+        function renderStudents(students) {
+            const tbody = document.getElementById('students-tbody');
+            
+            if (!students || students.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-4">
+                            <i class="fas fa-users text-warning" style="font-size: 32px;"></i>
+                            <p class="mt-2 mb-0">No students enrolled yet</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = students.map(student => `
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="person-avatar me-2" style="width: 35px; height: 35px; font-size: 14px;">
+                                ${student.first_name[0]}${student.last_name[0]}
+                            </div>
+                            ${escapeHtml(student.first_name)} ${escapeHtml(student.last_name)}
+                        </div>
+                    </td>
+                    <td>${escapeHtml(student.username)}</td>
+                    <td><a href="mailto:${escapeHtml(student.email)}" class="text-warning">${escapeHtml(student.email)}</a></td>
+                    <td><small>${escapeHtml(student.enrolled_subjects || '-')}</small></td>
+                    <td>${formatDate(student.first_enrolled || student.enrolled_at)}</td>
+                </tr>
+            `).join('');
+        }
+        
+        // Search functionality
+        document.getElementById('searchStudents').addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            const filtered = allStudents.filter(s => 
+                s.first_name.toLowerCase().includes(query) || 
+                s.last_name.toLowerCase().includes(query) ||
+                s.email.toLowerCase().includes(query) ||
+                s.username.toLowerCase().includes(query)
+            );
+            renderStudents(filtered);
+        });
+        
+        // Filter by class
+        document.getElementById('filterClass').addEventListener('change', function() {
+            loadStudents(this.value || null);
+        });
+        
+        // Helper functions
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+        
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            logoutUser();
+        });
+        
+        // Nav toggle
+        document.querySelector('.nav-toggle').addEventListener('click', () => {
+            document.querySelector('.nav-links').classList.toggle('show');
+        });
+        
+        // Initialize
+        loadClasses();
+        loadStudents();
+    </script>
+</body>
+</html>
